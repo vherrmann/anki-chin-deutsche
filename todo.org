@@ -1,0 +1,6 @@
+* TODO Audio auch auf Ankidroid
+* TODO Animiere Character Knopf hanzi-writer
+* TODO Durchsteppen Knopf hanzi-writer
+* TODO Wenig Platz zwischen Canvases in Ankidroid
+* TODO Chin. Sätze hinzufügen
+* TODO Use ankiconnect instead of manually using unzipping the decks, etc.

@@ -1,0 +1,87 @@
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+
+<script>
+ // utils
+ function createButton(innerHTML, onclick) {
+     const button = document.createElement("button");
+     button.innerHTML = innerHTML;
+     button.onclick = onclick;
+     return button;
+ }
+
+ function initializeCharsTarget() {
+    charsTarget = document.getElementById("characters-target-div");
+     for (c of '{{Chinesisch}}') {
+        const charTarget = document.createElement("div");
+        charsTarget.appendChild(charTarget);
+        charTarget.style.display = "inline";
+        const writer = HanziWriter.create(charTarget, c, {
+            width: 100,
+            height: 100,
+            padding: 5,
+            radicalColor: '#168F16' // green
+        });
+     }
+ }
+
+ function initializeCharsTargetQuiz(showOutline) {
+    charsTargetQuiz = document.getElementById("characters-target-div-quiz");
+    for (c of '{{Chinesisch}}') {
+        const charTargetQuiz = document.createElement("div");
+
+        const charTargetQuizCanvas = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        charTargetQuizCanvas.setAttribute("width", "200");
+        charTargetQuizCanvas.setAttribute("height", "200");
+        charTargetQuizCanvas.innerHTML = `
+            <line x1="0" y1="0" x2="200" y2="200" stroke="#DDD" />
+            <line x1="200" y1="0" x2="0" y2="200" stroke="#DDD" />
+            <line x1="100" y1="0" x2="100" y2="200" stroke="#DDD" />
+            <line x1="0" y1="100" x2="200" y2="100" stroke="#DDD" />
+        `;
+        const writerQuiz = HanziWriter.create(charTargetQuizCanvas, c, {
+            width: 200,
+            height: 200,
+            padding: 5,
+            showCharacter: false,
+            showOutline: showOutline,
+            radicalColor: '#168F16' // green
+        });
+        writerQuiz.quiz();
+
+        charTargetQuiz.appendChild(charTargetQuizCanvas);
+
+        const charTargetQuizButtons = document.createElement("div");
+        charTargetQuizButtons.appendChild(createButton("↺", () => { writerQuiz.quiz(); }));
+        charTargetQuizButtons.appendChild(createButton("⏭", () => { writerQuiz.cancelQuiz(); writerQuiz.showCharacter(); }));
+        charTargetQuiz.appendChild(charTargetQuizButtons);
+
+        charsTargetQuiz.appendChild(charTargetQuiz);
+    }
+ }
+
+ if (document.getElementById("back")) {
+     document.getElementById("back_hider").style.display = "block";
+     // (fixme: Instead of playing the sound like this, we should get the filename and play it directly with js)
+     // pycmd(`play:q:0`);
+     audiofile = "{{Audio}}".replace('[sound:','').replace(']','');
+     var audio = new Audio(audiofile);
+     audio.play();
+ }
+</script>
+<span style="font-family: Gentium; font-size: 22px; ">{{Deutsch}}</span>
+<br>
+
+<div id="back_hider" style="display: none">
+    <hr id=answer>
+    <br>
+
+    <div>{{Audio}}</div>
+    <span style=" Unicode MS; font-size: 26px; 07f">{{Pinyin}}</span>
+
+    <div id="characters-target-div-quiz"></div>
+</div>
+
+<script>
+ initializeCharsTarget();
+ initializeCharsTargetQuiz(false);
+</script>

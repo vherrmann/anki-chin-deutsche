@@ -1,0 +1,3 @@
+Before using the scripts create-simp.py or create-trad.py you first have to add the needed fields ("Audio", "Beispielsatz", "Beispielsatz Übersetzung") to the deck. In our case we need an additional field for the audio and an additional field for the sentence.
+After using create-simp.py or create-trad.py you still need to paste the frontside and backside from ./card to its corresponding card.
+Switch on option "Don't play audio automatically"

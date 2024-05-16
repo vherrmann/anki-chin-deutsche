@@ -1,0 +1,4 @@
+.envrc
+cache
+tmp
+__pycache__
