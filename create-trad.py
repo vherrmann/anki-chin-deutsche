@@ -1,5 +1,4 @@
-#!/usr/bin/env -S nix shell nixos#python3 --command python
-# Works with rev f1010e0469db743d14519a1efd37e23f8513d714 of nixpkgs
+#!/usr/bin/env -S nix shell --override-input nixpkgs github:NixOS/nixpkgs/f1010e0469db743d14519a1efd37e23f8513d714 nixpkgs#python3 --command python
 
 import pathlib
 from contextlib import chdir
@@ -50,4 +49,9 @@ with DeckWriter("add-sound", deckPath) as wDir:
 with DeckWriter("add-sentences", deckPath) as wDir:
     print("section: add-sentences")
     cm.runScript("create-example-sentences.py")
+    deckPath = wDir + ".zip"
+
+with DeckWriter("add-hanzi-writer-data", deckPath) as wDir:
+    print("section: add-hanzi-writer-data")
+    cm.runScript("add-hanzi-writer-data.py")
     deckPath = wDir + ".zip"

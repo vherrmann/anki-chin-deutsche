@@ -1,4 +1,4 @@
-#!/usr/bin/env -S nix shell --override-input nixpkgs nixos /home/vherrmann/repos/-#python3With.gtts --command python
+#!/usr/bin/env -S nix shell --override-input nixpkgs github:NixOS/nixpkgs/f1010e0469db743d14519a1efd37e23f8513d714 /home/vherrmann/repos/-#python3With.gtts --command python
 
 # made to add audio to https://ankiweb.net/shared/info/2485307055
 # you first have to prepare the deck by adding a field to the cards, then export the deck from anki (in the old, compatible version)
@@ -24,7 +24,7 @@ def add_sound(i, flds):
     char = fldsList[0]
     charEnc = urllib.parse.quote(char, safe='')  # Encode just in case
     media_file_name = str(i)
-    name = f"Chinesisch_für_Deutsche_Audio({charEnc})"
+    name = f"Chinesisch_für_Deutsche_Audio({charEnc}).mp3"
 
     if not os.path.isfile(media_file_name):
         tts = gTTS(char, slow=True, lang='zh-TW')

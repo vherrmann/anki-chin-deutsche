@@ -1,4 +1,4 @@
-#!/usr/bin/env -S nix shell --override-input nixpkgs latest /home/vherrmann/repos/-#python312With.openai --command python
+#!/usr/bin/env -S nix shell --override-input nixpkgs github:NixOS/nixpkgs/f1010e0469db743d14519a1efd37e23f8513d714 /home/vherrmann/repos/-#python312With.openai --command python
 
 # first use extract json from deck by using extract-json.py
 
@@ -11,9 +11,13 @@ import sqlite3
 import itertools
 import urllib.parse
 
-cm.runScript("extract-json.py")
-
 client = OpenAI()
+
+charactersData = cm.charDicDeck("collection.anki21")
+
+scriptDir = os.path.dirname(__file__)
+
+cacheDir = scriptDir + "/../cache/create-example-sentences/"
 
 latestmsg = ""
 def askGPT(msg):
@@ -58,11 +62,6 @@ class BadResponse(Exception):
     pass
 
 
-charactersFile = "characters.json"
-charactersData = []
-with open(charactersFile) as fp:
-    charactersData = json.load(fp)
-
 chunkSize = 10
 sentences = {}
 def checkCompletionRes(resDic, chunk):
@@ -87,7 +86,7 @@ def checkCompletionRes(resDic, chunk):
 ### create example sentences
 for (i, chunk) in zip(it.count(), it.batched(charactersData, chunkSize)):
     print(f"Progress: {i}")
-    chunkCacheFile = f"chunk{i}.json"
+    chunkCacheFile = cacheDir + f"chunk{i}.json"
     if os.path.isfile(chunkCacheFile) and not cm.fileEmptyP(chunkCacheFile):
         with open(chunkCacheFile) as fp:
             resDic = json.load(fp)
@@ -146,17 +145,18 @@ for (i, chunk) in zip(it.count(), it.batched(charactersData, chunkSize)):
             json.dump(resDic, fp)
     sentences.update(resDic)
 
-with open("sentences.json", encoding='UTF8', mode='w') as fp:
+sentenceFile = cacheDir + "sentences.json"
+with open(sentenceFile, encoding='UTF8', mode='w') as fp:
     json.dump(sentences, fp)
 
 ### Translate sentences
 
 translated_sentences = {}
-translated_sentencesFile = "translated_sentences.json"
+translated_sentencesFile = cacheDir + "translated_sentences.json"
 
 for (i, (char, sentence)) in zip(itertools.count(), sentences.items()):
     charEnc = urllib.parse.quote(char, safe='')  # Encode just in case
-    cacheFile = charEnc + ".json"
+    cacheFile = cacheDir + charEnc + ".json"
     if (not os.path.isfile(cacheFile)) or cm.fileEmptyP(cacheFile):
         # cache translating sentences
         completion = askGPT(f"""Please translate the sentence "{sentence}" into German.

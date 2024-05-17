@@ -1,5 +1,4 @@
-#!/usr/bin/env -S nix shell nixpkgs#python3 nixpkgs#opencc --command python
-
+#!/usr/bin/env -S nix shell --override-input nixpkgs github:NixOS/nixpkgs/f1010e0469db743d14519a1efd37e23f8513d714 nixpkgs#python3 nixpkgs#opencc --command python
 # made to convert the characters in https://ankiweb.net/shared/info/2485307055
 # from simplified to traditional
 # to use it, you first have to unzip the deck, then cd into the directory of collection.anki2

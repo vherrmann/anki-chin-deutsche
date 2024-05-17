@@ -1,6 +1,8 @@
 import subprocess
 import os
 from pathlib import Path
+import json
+import sqlite3
 
 sep = '\u001f' # seperats fields in database
 scriptDir = os.path.dirname(__file__)
@@ -26,3 +28,15 @@ def yesno(prompt):
         elif user_input.lower() in ['no', 'n']:
             break
             return False
+
+
+def charDicDeck(deck):
+    con = sqlite3.connect(deck)
+    cur = con.cursor()
+    data = cur.execute('SELECT id, flds FROM notes').fetchall()
+    json_val = []
+
+    for (id, flds) in data:
+        char = flds.split(sep)[0]
+        json_val += [char]
+    return json_val

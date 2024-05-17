@@ -1,6 +1,22 @@
-* TODO Audio auch auf Ankidroid
-* TODO Animiere Character Knopf hanzi-writer
-* TODO Durchsteppen Knopf hanzi-writer
-* TODO Wenig Platz zwischen Canvases in Ankidroid
-* TODO Chin. Sätze hinzufügen
-* TODO Use ankiconnect instead of manually using unzipping the decks, etc.
+* DONE [#A] Audio auch auf Ankidroid
+CLOSED: [2024-05-17 Fri 15:03]
+* TODO [#A] Audio auf Ankiweb
+* TODO [#B] more efficient loading with async?
+* DONE [#B] Animiere Character Knopf hanzi-writer
+CLOSED: [2024-05-16 Thu 14:50]
+* DONE [#B] Durchsteppen Knopf hanzi-writer
+CLOSED: [2024-05-16 Thu 13:00]
+* DONE [#B] Weniger Platz zwischen Canvases in Ankidroid
+CLOSED: [2024-05-17 Fri 15:02]
+* DONE [#B] Chin. Sätze hinzufügen
+CLOSED: [2024-05-16 Thu 13:10]
+* DONE [#A] Offline hanzi
+CLOSED: [2024-05-17 Fri 14:10]
+* DONE [#A] split cache in deck and rest
+CLOSED: [2024-05-17 Fri 14:10]
+* DONE [#A] optionen dokumentieren
+CLOSED: [2024-05-17 Fri 15:02]
+* DONE [#B] bei skripten working commit hinzufügen/direkt in nix shell fixen
+CLOSED: [2024-05-17 Fri 14:10]
+* TODO [#C] bilder hinzufügen? ([[https://www.pexels.com/][Free Stock Photos, Royalty Free Stock Images & Copyright Free Pictures · Pexels]])
+* TODO [#C] Use ankiconnect instead of manually using unzipping the decks, etc.

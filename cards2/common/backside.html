@@ -1,1 +1,50 @@
-<div id="back">{{FrontSide}}</div>
+<script>
+ function initializeCharsTargetQuiz(showOutline) {
+     const charsTargetQuiz = document.getElementById("characters-target-div-quiz");
+     for (const c of '{{Chinesisch}}') {
+         const charTargetQuiz = document.createElement("div");
+
+         const charTargetQuizCanvas = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+         charTargetQuizCanvas.setAttribute("width", "200");
+         charTargetQuizCanvas.setAttribute("height", "200");
+         charTargetQuizCanvas.innerHTML = `
+            <line x1="0" y1="0" x2="200" y2="200" stroke="#DDD" />
+            <line x1="200" y1="0" x2="0" y2="200" stroke="#DDD" />
+            <line x1="100" y1="0" x2="100" y2="200" stroke="#DDD" />
+            <line x1="0" y1="100" x2="200" y2="100" stroke="#DDD" />
+        `;
+         hanziCharExistsP(c).then((b) => {
+             if (b) {
+                 const writerQuiz = HanziWriter.create(charTargetQuizCanvas, c, {
+                     width: 200,
+                     height: 200,
+                     padding: 5,
+                     showCharacter: false,
+                     showOutline: showOutline,
+                     radicalColor: '#168F16', // green
+                 });
+
+                 charTargetQuiz.appendChild(charTargetQuizCanvas);
+
+                 const charTargetQuizButtons = document.createElement("div");
+                 charTargetQuizButtons.appendChild(createButton("↺", () => {
+                     writerQuiz.pauseAnimation();
+                     writerQuiz.quiz();
+                 }));
+                 charTargetQuizButtons.appendChild(createButton("⏭", () => {
+                     writerQuiz.pauseAnimation();
+                     writerQuiz.cancelQuiz();
+                     writerQuiz.showCharacter();
+                 }));
+                 charTargetQuizButtons.appendChild(createButton("⏵", () => {
+                     writerQuiz.cancelQuiz();
+                     writerQuiz.animateCharacter();
+                 }));
+                 charTargetQuiz.appendChild(charTargetQuizButtons);
+                 charsTargetQuiz.appendChild(charTargetQuiz);
+                 writerQuiz.quiz();
+             }
+         });
+    }
+ }
+</script>
