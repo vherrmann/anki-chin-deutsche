@@ -1,48 +1,119 @@
 <script>
  function initializeCharsTargetQuiz(showOutline) {
      const charsTargetQuiz = document.getElementById("characters-target-div-quiz");
+     let shownChars = {};
+     const changeExSentenceDisplay = (c, val) => {
+         shownChars[c] = val;
+         if (!showOutline && Object.values(shownChars).includes(false)) {
+             document.getElementById("beispiel").style.display = "none";
+         } else {
+             document.getElementById("beispiel").style.display = "block";
+         }
+     };
      for (const c of '{{Chinesisch}}') {
          const charTargetQuiz = document.createElement("div");
 
          const charTargetQuizCanvas = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-         charTargetQuizCanvas.setAttribute("width", "200");
-         charTargetQuizCanvas.setAttribute("height", "200");
+         const hSize = dconfig.quizSize;
+         charTargetQuizCanvas.setAttribute("width", hSize);
+         charTargetQuizCanvas.setAttribute("height", hSize);
+         const halfHSize = hSize / 2;
          charTargetQuizCanvas.innerHTML = `
-            <line x1="0" y1="0" x2="200" y2="200" stroke="#DDD" />
-            <line x1="200" y1="0" x2="0" y2="200" stroke="#DDD" />
-            <line x1="100" y1="0" x2="100" y2="200" stroke="#DDD" />
-            <line x1="0" y1="100" x2="200" y2="100" stroke="#DDD" />
+        <line x1="0"            y1="0"
+              x2="${hSize}"     y2="${hSize}"     stroke="#DDD" />
+        <line x1="${hSize}"     y1="0"
+              x2="0"            y2="${hSize}"     stroke="#DDD" />
+        <line x1="${halfHSize}" y1="0"
+              x2="${halfHSize}" y2="${hSize}"     stroke="#DDD" />
+        <line x1="0"            y1="${halfHSize}"
+              x2="${hSize}"     y2="${halfHSize}" stroke="#DDD" />
         `;
+         changeExSentenceDisplay(c, false);
          hanziCharExistsP(c).then((b) => {
              if (b) {
+                 let quizRunning = true;
+                 let paths = [];
+                 const setQuizRunning = b => {
+                     quizRunning = b;
+                     if (b) {
+                         skipNextBtn.removeAttribute("disabled");
+                     } else {
+                         skipNextBtn.setAttribute("disabled", "disabled");
+                     }
+                 };
+                 const removePaths = _ => {
+                     paths.forEach((path, _i, _arr) => removeFadeOut(path, 400));
+                     paths = []
+                 };
+
                  const writerQuiz = HanziWriter.create(charTargetQuizCanvas, c, {
-                     width: 200,
-                     height: 200,
+                     width: hSize,
+                     height: hSize,
                      padding: 5,
                      showCharacter: false,
                      showOutline: showOutline,
-                     radicalColor: '#168F16', // green
+                     radicalColor: '#168F16' // green
                  });
 
-                 charTargetQuiz.appendChild(charTargetQuizCanvas);
+                 const startQuiz = (options = {}) => {
+                     setQuizRunning(true);
+                     writerQuiz.quiz({
+                         leniency: dconfig.leniency,
+                         averageDistanceThreshold: dconfig.averageDistanceThreshold,
+                         onComplete: _ => {
+                             changeExSentenceDisplay(c, true);
+                             setQuizRunning(false);
+                         },
+                         onCorrectStroke: data => {
+                             let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                             path.setAttributeNS(null, 'd', data.drawnPath.pathString);
+                             // style the character paths
+                             path.style.stroke = '#C3C';
+                             path.style.strokeWidth = 6;
+                             path.style.strokeOpacity = 0.7;
+                             path.style.fillOpacity = 0; // remove filling
+                             paths.push(path);
+                             charTargetQuizCanvas.appendChild(path);
+                         },
+                         ...options
+                     }
+                     );
+                 };
 
+                 // Buttons
                  const charTargetQuizButtons = document.createElement("div");
-                 charTargetQuizButtons.appendChild(createButton("↺", () => {
-                     writerQuiz.pauseAnimation();
-                     writerQuiz.quiz();
-                 }));
-                 charTargetQuizButtons.appendChild(createButton("⏭", () => {
-                     writerQuiz.pauseAnimation();
-                     writerQuiz.cancelQuiz();
+                 const restartQuizBtn = createButton("restartQuizBtn", "↺", () => {
+                     changeExSentenceDisplay(c, false);
+                     removePaths();
+                     startQuiz();
+                 });
+                 const animateAllBtn = createButton("animateAllBtn", "⏵", () => {
+                     setQuizRunning(false);
+                     removePaths();
+                     writerQuiz.animateCharacter({ onComplete: _ => {
+                         changeExSentenceDisplay(c, true);
+                     }});
+                 });
+                 const skipNextBtn = createButton("skipNextBtn", "›", () => {
+                     writerQuiz.skipQuizStroke()
+                 });
+                 const skipAllBtn = createButton("skipAllBtn", "⏭", () => {
+                     setQuizRunning(false);
                      writerQuiz.showCharacter();
-                 }));
-                 charTargetQuizButtons.appendChild(createButton("⏵", () => {
-                     writerQuiz.cancelQuiz();
-                     writerQuiz.animateCharacter();
-                 }));
+                     changeExSentenceDisplay(c, true);
+                 });
+                 const openDicBtn = createButton("openDicBtn", "📕", () => {
+                     window.open("https://hanzicraft.com/character/" + c);
+                 });
+                 charTargetQuizButtons.appendChild(restartQuizBtn);
+                 charTargetQuizButtons.appendChild(animateAllBtn);
+                 charTargetQuizButtons.appendChild(skipNextBtn);
+                 charTargetQuizButtons.appendChild(skipAllBtn);
+                 charTargetQuizButtons.appendChild(openDicBtn);
+                 charTargetQuiz.appendChild(charTargetQuizCanvas);
                  charTargetQuiz.appendChild(charTargetQuizButtons);
                  charsTargetQuiz.appendChild(charTargetQuiz);
-                 writerQuiz.quiz();
+                 startQuiz();
              }
          });
     }

@@ -1,6 +1,9 @@
-Before using the scripts create-simp.py or create-trad.py you first have to add the needed fields ("Audio", "Beispielsatz", "Beispielsatz Übersetzung") to the deck. In our case we need an additional field for the audio and an additional field for the sentence.
-After using create-simp.py or create-trad.py you still need to paste the frontside and backside from ./card to its corresponding card.
-Change the following options:
+The deck in data/ differs from the [[https://ankiweb.net/shared/info/2485307055][original]] in the following ways:
+- additional fields have been added ("Audio", "Beispielsatz Chinesisch", "Beispielsatz Pinyin", "Beispielsatz Übersetzung")
+- one of the notes had a html tag in it's "Chinese" field. This broke the scripts wherefore it was removed.
+- a third card has been added to the note type (fitting to the templates)
+
+I recommend using the following options:
 - The daily limits should be divisible by 3, e.g. 15 instead of 20
-- New card sort order should be "Order gathered"
-- New/review order should be "Show after reviews"
+- New card sort order should be "Order gathered" so that you get the three cards of a new note together.
+- New/review order should be "Show after reviews" so that you know when you learn new cards.

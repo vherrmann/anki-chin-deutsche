@@ -1,4 +1,4 @@
-#!/usr/bin/env -S nix shell --override-input nixpkgs github:NixOS/nixpkgs/f1010e0469db743d14519a1efd37e23f8513d714 /home/vherrmann/repos/-#python312With.openai --command python
+#!/usr/bin/env -S nix shell --override-input nixpkgs github:NixOS/nixpkgs/f1010e0469db743d14519a1efd37e23f8513d714 /home/vherrmann/repos/-#python312With.openai.pypinyin --command python
 
 # first use extract json from deck by using extract-json.py
 
@@ -8,16 +8,17 @@ import itertools as it
 import common as cm
 import os
 import sqlite3
-import itertools
 import urllib.parse
+import sys
+import re
+import subprocess
 
 client = OpenAI()
 
 charactersData = cm.charDicDeck("collection.anki21")
 
-scriptDir = os.path.dirname(__file__)
-
-cacheDir = scriptDir + "/../cache/create-example-sentences/"
+cacheDir = sys.argv[1] + "/create-example-sentences/"
+cm.mkdirp(cacheDir)
 
 latestmsg = ""
 def askGPT(msg):
@@ -27,6 +28,18 @@ def askGPT(msg):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a skilled chinese teacher, who only responds in machine-readable json without unnecessary characters like line breaks or whitespace."},
+            {"role": "user", "content": msg
+       }
+        ]
+    )
+
+def askGPTDeutsch(msg):
+    global latestmsg
+    latestmsg = msg
+    return client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "Du bist ein exzellenter Chinesischlehrer."},
             {"role": "user", "content": msg
        }
         ]
@@ -67,26 +80,24 @@ sentences = {}
 def checkCompletionRes(resDic, chunk):
     if list(resDic.keys()) != list(chunk):
         raise BadResponse("The keys of the returned json don't fit the requested words.")
-    # outdated:
+    def checkKey(k):
+        kWOParens = re.sub("（.*）", "", k)
+        return re.search(kWOParens.replace("…", ".*"), resDic[k])
+
     # theoretically we could use
     #   not all(map(lambda k: k in resDic[k], resDic.keys()))
     # but some characters are of the form "報（紙）". Due to good reason chatgpt doesn't include
     # this exact sequence in the sentence. We also have characters with /.
     # We also have characters with … as a wildcard.
-    # We further have following problematic characters:
-    # 嗎
-    # not all(map(lambda k: k in resDic[k],
-                   # filter((lambda k: not ("（" in k or "/" in k or "…" in k)),
-                   #        resDic.keys()))):
-    if not all(map(lambda k: k in resDic[k], resDic.keys())):
-        badKeys = list(filter(lambda k: not (k in resDic[k]), resDic.keys()))
+    if not all(map(checkKey, resDic.keys())):
+        badKeys = list(filter(lambda k: not (checkKey(k)), resDic.keys()))
         raise BadResponse(f"The example sentence for \"{badKeys}\" doesn't mention the corresponding word!")
 
-
 ### create example sentences
-for (i, chunk) in zip(it.count(), it.batched(charactersData, chunkSize)):
+for (i, chunk) in enumerate(it.batched(charactersData, chunkSize)):
     print(f"Progress: {i}")
-    chunkCacheFile = cacheDir + f"chunk{i}.json"
+    hashedChunk = cm.hash(chunk)
+    chunkCacheFile = cacheDir + f"chunk_{hashedChunk}.json"
     if os.path.isfile(chunkCacheFile) and not cm.fileEmptyP(chunkCacheFile):
         with open(chunkCacheFile) as fp:
             resDic = json.load(fp)
@@ -145,6 +156,30 @@ for (i, chunk) in zip(it.count(), it.batched(charactersData, chunkSize)):
             json.dump(resDic, fp)
     sentences.update(resDic)
 
+# Get pinyin for all sentences
+
+pinyin_of_sentences = {}
+
+# FIXME: This translates 這隻貓很可愛 to zhè zhī māo hěn kě ài 。,
+# instead of zhè zhī māo hěn kě'ài 。.
+for (i, (char, sentence)) in enumerate(sentences.items()):
+    hashedChunk = cm.hash(sentence)
+    pinyinCacheFile = cacheDir + f"/pinyin_{hashedChunk}.json"
+    if os.path.isfile(pinyinCacheFile) and not cm.fileEmptyP(pinyinCacheFile):
+        with open(pinyinCacheFile, mode='r') as fp:
+            pinyin = fp.read()
+    else:
+        subprocess.run(f"pypinyin > {pinyinCacheFile}", input=sentence, text=True, shell=True)
+        with open(pinyinCacheFile) as fp:
+            pinyin = fp.read()
+
+    print(f"Index: {i}")
+    print(f"Char: {char}")
+    print(f"Original: {sentence}")
+    print(f"Pinyin: {pinyin}")
+    pinyin_of_sentences[char] = pinyin
+
+
 sentenceFile = cacheDir + "sentences.json"
 with open(sentenceFile, encoding='UTF8', mode='w') as fp:
     json.dump(sentences, fp)
@@ -152,26 +187,25 @@ with open(sentenceFile, encoding='UTF8', mode='w') as fp:
 ### Translate sentences
 
 translated_sentences = {}
-translated_sentencesFile = cacheDir + "translated_sentences.json"
 
-for (i, (char, sentence)) in zip(itertools.count(), sentences.items()):
+for (i, (char, sentence)) in enumerate(sentences.items()):
     charEnc = urllib.parse.quote(char, safe='')  # Encode just in case
-    cacheFile = cacheDir + charEnc + ".json"
+    cacheFile = cacheDir + "/translation_" + charEnc + ".json"
     if (not os.path.isfile(cacheFile)) or cm.fileEmptyP(cacheFile):
         # cache translating sentences
-        completion = askGPT(f"""Please translate the sentence "{sentence}" into German.
-                                Please return the translation without elaboration or further comments on the task.
-                                In particular, don't wrap the sentence into a json object. Return just a string without adding quotes.""")
-        res = completion.choices[0].message.content
+        completion = askGPTDeutsch(f"""Bitte übersetze den Satz "{sentence}" ins Deutsche.
+                                Antworte bitte nur mit der Übersetzung ohne weitere Erläuterungen oder Kommentare zur Aufgabe.
+                                Verwende insbesondere keine Anführungszeichen oder andere unnötige Zeichen.
+                                Deine Antwort sollte kein JSON-Objekt sein.
+                                Danke!""")
+        translation = completion.choices[0].message.content
 
         tokens += completion.usage.total_tokens
         print(f"Used tokens total: {tokens}")
         print(f"Est. total cost: {tokens/1000000*50}ct")
 
-        translation = res
-
         with open(cacheFile, encoding='UTF8', mode='w') as fp:
-            json.dump(res, fp)
+            json.dump(translation, fp)
     else:
         with open(cacheFile, encoding='UTF8', mode='r') as fp:
             translation = json.load(fp)
@@ -182,8 +216,6 @@ for (i, (char, sentence)) in zip(itertools.count(), sentences.items()):
     print(f"Translation: {translation}")
     translated_sentences[char] = translation
 
-
-
 ### Publish to database
 
 database = "collection.anki21"
@@ -191,16 +223,15 @@ database = "collection.anki21"
 con = sqlite3.connect(database)
 cur = con.cursor()
 data = cur.execute('SELECT id, flds FROM notes').fetchall()
-for (i, (id, flds)) in zip(itertools.count(), data):
+for (i, (id, flds)) in enumerate(data):
     fldsList = flds.split(cm.sep)
     char = fldsList[0]
     sentence = sentences[char]
     translation = translated_sentences[char]
-    new_flds = cm.sep.join(cm.replaceFirst(cm.replaceFirst(fldsList,
-                                                           '',
-                                                           sentence),
-                                      '',
-                                      translation))
+    pinyin = pinyin_of_sentences[char]
+    fldsWithSentence = cm.replaceFirst(fldsList, '', sentence)
+    fldsWithTranslation = cm.replaceFirst(fldsWithSentence, '', translation)
+    new_flds = cm.sep.join(cm.replaceFirst(fldsWithTranslation, '', pinyin))
     cur.execute("UPDATE notes SET flds=? WHERE id=?", (new_flds, id))
 
 con.commit()

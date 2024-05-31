@@ -1,10 +1,17 @@
 <script>
  // utils
- function createButton(innerHTML, onclick) {
+ function createButton(id, innerHTML, onclick) {
      const button = document.createElement("button");
+     button.id = id;
      button.innerHTML = innerHTML;
      button.onclick = onclick;
      return button;
+ }
+
+ function removeFadeOut(el, speed) {
+     el.style.transition = `opacity ${speed}ms linear`;
+     el.style.opacity = 0;
+     setTimeout(() => el.remove(), speed);
  }
 
  function initializeCharsTarget() {

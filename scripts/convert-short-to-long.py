@@ -8,16 +8,18 @@ import tempfile
 import subprocess
 import common as cm
 import os
-import urllib.parse
+import sys
+import pathlib
 
-scriptDir = os.path.dirname(__file__)
+openccCacheDir = sys.argv[1] + "/opencc/"
+pathlib.Path(openccCacheDir).mkdir(parents=True, exist_ok=True)
+openccConfigFile = sys.argv[2]
 
-openccCacheDir = scriptDir + "/../cache/opencc/"
-
-def convert_to_trad(string):
-    stringList = string.split(cm.sep)
+def convert_to_trad(flds):
+    stringList = flds.split(cm.sep)
     char = stringList[0]
-    oFile = openccCacheDir + urllib.parse.quote(char, safe='')
+    hashedFlds = cm.hash(flds)
+    oFile = openccCacheDir + "/opencc_res_" + hashedFlds
     # We need to check if the cached file is empty for the
     # case that the process got interrupted the last time it has run.
     if os.path.isfile(oFile) and not cm.fileEmptyP(oFile):
@@ -28,10 +30,10 @@ def convert_to_trad(string):
             open(oFile, 'x').close()
         with open(oFile, 'r') as fpo:
             with tempfile.NamedTemporaryFile(mode='w') as fpi:
-                fpi.write(string)
+                fpi.write(flds)
                 fpi.flush()
 
-                subprocess.run(["opencc", "-i", fpi.name, "-o", fpo.name])
+                subprocess.run(["opencc", "-i", fpi.name, "-o", fpo.name, "-c", openccConfigFile])
 
                 fpo.seek(0)
                 return fpo.read()

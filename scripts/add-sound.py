@@ -5,30 +5,36 @@
 # then you have to unzip it
 
 import sqlite3
-import itertools
 import json
 import os
 import os.path
 from gtts import gTTS
 import urllib.parse
 import common as cm
-
+import sys
+import shutil
 
 mediaFile = "media"
 database = "collection.anki21"
 media_dic = {}
 
+cacheDir = sys.argv[1] + "/tts/"
+cm.mkdirp(cacheDir)
+locale = sys.argv[2]
 
 def add_sound(i, flds):
     fldsList = flds.split(cm.sep)
     char = fldsList[0]
     charEnc = urllib.parse.quote(char, safe='')  # Encode just in case
-    media_file_name = str(i)
+    deck_file_name = f"./{i}"
     name = f"Chinesisch_für_Deutsche_Audio({charEnc}).mp3"
+    cache_file_name = cacheDir + "/" + name
 
-    if not os.path.isfile(media_file_name):
-        tts = gTTS(char, slow=True, lang='zh-TW')
-        tts.save(media_file_name)
+    if not os.path.isfile(cache_file_name) or cm.fileEmptyP(cache_file_name):
+        tts = gTTS(char, slow=True, lang=locale)
+        tts.save(cache_file_name)
+
+    shutil.copy(cache_file_name, deck_file_name)
 
     media_dic[i] = name
 
@@ -38,7 +44,7 @@ def add_sound(i, flds):
 con = sqlite3.connect(database)
 cur = con.cursor()
 data = cur.execute('SELECT id, flds FROM notes').fetchall()
-for (i, (id, flds)) in zip(itertools.count(), data):
+for (i, (id, flds)) in enumerate(data):
     print(i, id, flds)
     new_flds = add_sound(i, flds)
     print(i, id, new_flds)
