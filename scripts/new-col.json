@@ -202,7 +202,7 @@
           "description": "",
           "plainText": false,
           "collapsed": false,
-          "excludeFromSearch": false,
+          "excludeFromSearch": true,
           "id": -3789005040652926330,
           "tag": null,
           "preventDeletion": false
@@ -217,7 +217,7 @@
           "description": "",
           "plainText": false,
           "collapsed": false,
-          "excludeFromSearch": false,
+          "excludeFromSearch": true,
           "id": 4580217405764946018,
           "tag": null,
           "preventDeletion": false
@@ -232,7 +232,7 @@
           "description": "",
           "plainText": false,
           "collapsed": false,
-          "excludeFromSearch": false,
+          "excludeFromSearch": true,
           "id": 2425796703381577162,
           "tag": null,
           "preventDeletion": false
@@ -247,7 +247,7 @@
           "description": "",
           "plainText": false,
           "collapsed": false,
-          "excludeFromSearch": false,
+          "excludeFromSearch": true,
           "id": 6512942198858973108,
           "tag": null,
           "preventDeletion": false
