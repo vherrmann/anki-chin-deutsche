@@ -13,6 +13,7 @@ import urllib.parse
 import common as cm
 import sys
 import shutil
+import base64
 
 mediaFile = "media"
 database = "collection.anki21"
@@ -22,12 +23,13 @@ cacheDir = sys.argv[1] + "/tts/"
 cm.mkdirp(cacheDir)
 locale = sys.argv[2]
 
+
 def add_sound(i, flds):
     fldsList = flds.split(cm.sep)
     char = fldsList[0]
-    charEnc = urllib.parse.quote(char, safe='')  # Encode just in case
     deck_file_name = f"./{i}"
-    name = f"Chinesisch_für_Deutsche_Audio({charEnc}).mp3"
+    charEnc = base64.urlsafe_b64encode(char.encode()).decode()
+    name = f"Chinesisch_für_Deutsche_Audio_{charEnc}.mp3"
     cache_file_name = cacheDir + "/" + name
 
     if not os.path.isfile(cache_file_name) or cm.fileEmptyP(cache_file_name):
@@ -38,19 +40,19 @@ def add_sound(i, flds):
 
     media_dic[i] = name
 
-    return cm.sep.join(cm.replaceFirst(fldsList, '', "[sound:" + name + "]"))
+    return cm.sep.join(cm.replaceFirst(fldsList, "", "[sound:" + name + "]"))
 
 
 con = sqlite3.connect(database)
 cur = con.cursor()
-data = cur.execute('SELECT id, flds FROM notes').fetchall()
-for (i, (id, flds)) in enumerate(data):
+data = cur.execute("SELECT id, flds FROM notes").fetchall()
+for i, (id, flds) in enumerate(data):
     print(i, id, flds)
     new_flds = add_sound(i, flds)
     print(i, id, new_flds)
     cur.execute("UPDATE notes SET flds=? WHERE id=?", (new_flds, id))
 
-with open(mediaFile, encoding='UTF8', mode='w') as fp:
+with open(mediaFile, encoding="UTF8", mode="w") as fp:
     json.dump(media_dic, fp)
 
 print(media_dic)
