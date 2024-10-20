@@ -42,7 +42,10 @@ CLOSED: [2024-05-30 Thu 21:24]
 :LOGBOOK:
 - State "WAITING"    from "TODO"       [2024-05-31 Fri 13:46]
 :END:
-
+* TODO [#B] preset deck presets
+:LOGBOOK:
+- State "WAITING"    from              [2024-06-12 Wed 17:10]
+:END:
 * DONE [#B] add configuration options directly in the beginning of the template
 CLOSED: [2024-05-31 Fri 14:02]
 * DONE [#B] remove steps dir between runs
@@ -63,7 +66,7 @@ CLOSED: [2024-05-26 Sun 09:04]
 * TODO [#B] upload repo
 * TODO [#C] offline & online build of card templates
 * TODO [#C] yarn build of card templates
-* TODO [#C] Use genanki
+* TODO [#C] Use genanki or [[https://hackage.haskell.org/package/anki-tools][anki-tools: Tools for interacting with Anki database]] or [[https://github.com/langfield/ki][langfield/ki: version control for Anki collections]]
 * CANCELLED [#B] hanzi writer: more simple character data?
 CLOSED: [2024-05-24 Fri 23:10]
 * DONE [#B] hanzi writer normale version einbinden
@@ -78,3 +81,4 @@ CLOSED: [2024-05-21 Tue 19:07]
 * TODO [#C] Use ankiconnect instead of manually using unzipping the decks, etc.
 * TODO [#C] more efficient loading with async?
 * TODO [#C] set leniency hanzi writer less on desktop, more on mobile?
+* TODO [#B] contextmanager for database connections

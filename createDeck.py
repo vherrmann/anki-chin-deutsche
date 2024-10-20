@@ -8,13 +8,12 @@ import scripts.common as cm
 
 scriptDir = os.path.dirname(__file__)
 
+
 class DeckWriter(object):
     def __init__(self, proccStepName, path, name):
         self.path = path
         self.proccStepName = proccStepName
-        self.workDir = (scriptDir
-                        + f"/cache/{name}/steps/"
-                        + proccStepName)
+        self.workDir = scriptDir + f"/cache/{name}/steps/" + proccStepName
 
     def __enter__(self):
         pathlib.Path(self.workDir).mkdir(parents=True, exist_ok=True)
@@ -29,6 +28,7 @@ class DeckWriter(object):
         shutil.make_archive(self.workDir, "zip")
         self.workdirCM.__exit__()
 
+
 def createDeck(config):
     deckPath = scriptDir + "/data/Chinesisch_für_Deutsche_1+2.apkg"
 
@@ -37,15 +37,22 @@ def createDeck(config):
     # Remove stepsdir for better reproducibility
     shutil.rmtree(cacheDir + "/steps", ignore_errors=True)
 
+    with DeckWriter("fix-data", deckPath, config["name"]) as wDir:
+        print("section: fix-data")
+        cm.runScript("fix-data.py", [config["name"]])
+        deckPath = wDir + ".zip"
+
     with DeckWriter("update_mod_date", deckPath, config["name"]) as wDir:
         print("section: update_mod_date")
         cm.runScript("update_mod_date.py")
         deckPath = wDir + ".zip"
 
-    if 'openccConfigFile' in config.keys():
+    if "openccConfigFile" in config.keys():
         with DeckWriter("to-trad", deckPath, config["name"]) as wDir:
             print("section: to-trad")
-            cm.runScript("convert-short-to-long.py", [cacheDir, config["openccConfigFile"]])
+            cm.runScript(
+                "convert-short-to-long.py", [cacheDir, config["openccConfigFile"]]
+            )
             deckPath = wDir + ".zip"
 
     with DeckWriter("add-sound", deckPath, config["name"]) as wDir:
@@ -56,8 +63,7 @@ def createDeck(config):
     # FIXME: Depending on tradp, instruct chatgpt to make the sentences more taiwanese or mainlandish
     with DeckWriter("add-sentences", deckPath, config["name"]) as wDir:
         print("section: add-sentences")
-        cm.runScript("create-example-sentences.py",
-                     [cacheDir])
+        cm.runScript("create-example-sentences.py", [cacheDir])
         deckPath = wDir + ".zip"
 
     with DeckWriter("add-hanzi-writer-data", deckPath, config["name"]) as wDir:
