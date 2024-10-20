@@ -2,8 +2,17 @@
  var dconfig = {
      leniency: 1,
      averageDistanceThreshold: 250,
-     quizSize: 200
+     desktopQuizSize: 200,
+     mobileQuizSize: 300
  };
+
+ // See https://docs.ankiweb.net/templates/styling.html#platform-specific-css
+ var mobilep = document.querySelectorAll(".mobile").length === 1;
+ if (mobilep) {
+     dconfig.quizSize = dconfig.mobileQuizSize;
+ } else {
+     dconfig.quizSize = dconfig.desktopQuizSize;
+ }
 </script>
 <script>
 /**
